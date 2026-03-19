@@ -19,6 +19,12 @@ interface Notice {
   date: string;
 }
 
+interface FacilityImage {
+  id: string;
+  src: string;
+  name: string;
+}
+
 interface SiteConfig {
   version: number;
   primaryColor: string;
@@ -31,21 +37,34 @@ interface SiteConfig {
   contactEmail: string;
   contactAddress: string;
   notices: Notice[];
+  facilityImages: FacilityImage[];
 }
 
 const INITIAL_CONFIG: SiteConfig = {
-  version: 2,
+  version: 4,
   primaryColor: '#22c55e',
   fontFamily: 'Inter',
   heroTitle: '우리 아이의 언어능력, 인지능력, 학습능력을 향상하는\n푸른숲 언어인지학습연구소입니다.',
   heroSubtitle: '',
-  heroBgImage: '/hero_bg.jpg',
+  heroBgImage: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=2000',
   aboutText: '"숲은 인간의 심장이다"라는 말이 있습니다. 숲은 우리 인간에게 생명력과 에너지를 공급하는 가장 큰 산소 생산자이기 때문입니다. 인간에게 있어서 언어능력 역시 삶을 살아가는 가장 기본적인 필수 요건입니다. 이러한 어려움을 같이 나누고 향상시켜 숲과 같은 산소공급자의 역할을 하고자 하는 마음으로 함께 나아갈 푸른숲 언어인지학습연구소 입니다.',
   contactPhone: '031-509-8922',
   contactEmail: 'grwu8922@naver.com',
   contactAddress: '경기 시흥시 장현능곡로 155, 시흥 플랑드르 3층 3011호',
   notices: [
     { id: '1', title: '푸른숲 언어인지학습연구소 홈페이지 오픈', content: '안녕하세요. 푸른숲 언어인지학습연구소입니다. 우리 아이들의 성장을 돕기 위한 새로운 소통 공간이 마련되었습니다.', date: '2026-03-19' }
+  ],
+  facilityImages: [
+    { id: '1', src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800', name: '학부모 대기실' },
+    { id: '2', src: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=800', name: '학부모 대기실' },
+    { id: '3', src: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&q=80&w=800', name: '한마음(상담실)' },
+    { id: '4', src: 'https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?auto=format&fit=crop&q=80&w=800', name: '한마음(상담실)' },
+    { id: '5', src: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=800', name: '둘이랑(개별지도실)' },
+    { id: '6', src: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=800', name: '도란도란(소그룹실)' },
+    { id: '7', src: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&q=80&w=800', name: '도란도란(소그룹실)' },
+    { id: '8', src: 'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&q=80&w=800', name: '어울림(대그룹실)' },
+    { id: '9', src: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80&w=800', name: '어울림(대그룹실)' },
+    { id: '10', src: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&q=80&w=800', name: '어울림(대그룹실)' },
   ]
 };
 
@@ -88,6 +107,16 @@ export default function App() {
     document.documentElement.style.setProperty('--font-sans', config.fontFamily);
   }, [config]);
 
+  // --- File Upload Utility ---
+  const handleFileUpload = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.onerror = (e) => reject(e);
+      reader.readAsDataURL(file);
+    });
+  };
+
   // --- Admin Handlers ---
   const handleUpdateConfig = (updates: Partial<SiteConfig>) => {
     setConfig({ ...config, ...updates });
@@ -97,6 +126,7 @@ export default function App() {
   const scrollToSection = (id: string) => {
     if (id === 'home') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      setActiveTab('home');
     } else {
       const element = document.getElementById(id);
       if (element) {
@@ -110,9 +140,9 @@ export default function App() {
           top: offsetPosition,
           behavior: 'smooth'
         });
+        setActiveTab(id as any);
       }
     }
-    setActiveTab(id as any);
   };
 
   const [selectedProgram, setSelectedProgram] = useState<any>(null);
@@ -439,6 +469,7 @@ export default function App() {
           <AdminDashboard 
             config={config} 
             onUpdateConfig={handleUpdateConfig}
+            onFileUpload={handleFileUpload}
           />
         ) : (
           <UserPage 
@@ -590,19 +621,8 @@ function UserPage({ config, activeTab, programs, setSelectedProgram }: {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {[
-              { src: 'https://picsum.photos/seed/room1/800/800', name: '학부모 대기실' },
-              { src: 'https://picsum.photos/seed/room2/800/800', name: '학부모 대기실' },
-              { src: 'https://picsum.photos/seed/room3/800/800', name: '한마음(상담실)' },
-              { src: 'https://picsum.photos/seed/room4/800/800', name: '한마음(상담실)' },
-              { src: 'https://picsum.photos/seed/room5/800/800', name: '둘이랑(개별지도실)' },
-              { src: 'https://picsum.photos/seed/room6/800/800', name: '도란도란(소그룹실)' },
-              { src: 'https://picsum.photos/seed/room7/800/800', name: '도란도란(소그룹실)' },
-              { src: 'https://picsum.photos/seed/room8/800/800', name: '어울림(대그룹실)' },
-              { src: 'https://picsum.photos/seed/room9/800/800', name: '어울림(대그룹실)' },
-              { src: 'https://picsum.photos/seed/room10/800/800', name: '어울림(대그룹실)' },
-            ].map((item, idx) => (
-              <div key={idx} className="group relative aspect-square rounded-2xl md:rounded-3xl overflow-hidden shadow-md border border-black/5 bg-slate-50">
+            {config.facilityImages.map((item) => (
+              <div key={item.id} className="group relative aspect-square rounded-2xl md:rounded-3xl overflow-hidden shadow-md border border-black/5 bg-slate-50">
                 <img 
                   src={item.src} 
                   alt={item.name} 
@@ -762,12 +782,15 @@ function UserPage({ config, activeTab, programs, setSelectedProgram }: {
 }
 
 // --- Admin Dashboard Component ---
-function AdminDashboard({ config, onUpdateConfig }: { 
+function AdminDashboard({ config, onUpdateConfig, onFileUpload }: { 
   config: SiteConfig, 
   onUpdateConfig: (updates: Partial<SiteConfig>) => void,
+  onFileUpload: (file: File) => Promise<string>,
 }) {
-  const [activeAdminTab, setActiveAdminTab] = useState<'content' | 'design' | 'notices'>('content');
+  const [activeAdminTab, setActiveAdminTab] = useState<'content' | 'design' | 'notices' | 'images'>('content');
   const [newNotice, setNewNotice] = useState({ title: '', content: '' });
+  const [newFacilityImage, setNewFacilityImage] = useState({ name: '', src: '' });
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleAddNotice = () => {
     if (!newNotice.title || !newNotice.content) return;
@@ -783,6 +806,51 @@ function AdminDashboard({ config, onUpdateConfig }: {
 
   const handleDeleteNotice = (id: string) => {
     onUpdateConfig({ notices: config.notices.filter(n => n.id !== id) });
+  };
+
+  const handleAddFacilityImage = () => {
+    if (!newFacilityImage.name || !newFacilityImage.src) return;
+    const newImg: FacilityImage = {
+      id: Date.now().toString(),
+      src: newFacilityImage.src,
+      name: newFacilityImage.name
+    };
+    onUpdateConfig({ facilityImages: [...config.facilityImages, newImg] });
+    setNewFacilityImage({ name: '', src: '' });
+  };
+
+  const handleDeleteFacilityImage = (id: string) => {
+    onUpdateConfig({ facilityImages: config.facilityImages.filter(img => img.id !== id) });
+  };
+
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const base64 = await onFileUpload(file);
+      onUpdateConfig({ heroBgImage: base64 });
+    } catch (err) {
+      console.error(err);
+      alert('이미지 업로드에 실패했습니다.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFacilityImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const base64 = await onFileUpload(file);
+      setNewFacilityImage({ ...newFacilityImage, src: base64 });
+    } catch (err) {
+      console.error(err);
+      alert('이미지 업로드에 실패했습니다.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -821,6 +889,7 @@ function AdminDashboard({ config, onUpdateConfig }: {
           {[
             { id: 'content', label: '콘텐츠 관리' },
             { id: 'notices', label: '공지사항 관리' },
+            { id: 'images', label: '이미지 관리' },
             { id: 'design', label: '디자인 설정' }
           ].map((tab) => (
             <button 
@@ -952,6 +1021,100 @@ function AdminDashboard({ config, onUpdateConfig }: {
                   </button>
                 </div>
               ))}
+            </div>
+          </motion.div>
+        )}
+
+        {activeAdminTab === 'images' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+            <div className="glass-card p-8 rounded-3xl space-y-6">
+              <h2 className="text-xl font-bold flex items-center gap-2"><ImageIcon className="text-accent" /> 메인 배경 이미지 관리</h2>
+              <div className="flex flex-col md:flex-row gap-8 items-start">
+                <div className="w-full md:w-1/2 aspect-video rounded-2xl overflow-hidden border border-black/10 bg-black/5">
+                  <img src={config.heroBgImage} alt="Hero Preview" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 space-y-4">
+                  <p className="text-sm text-text-secondary">연구소 메인 화면 상단의 배경 이미지를 직접 촬영한 사진으로 변경할 수 있습니다.</p>
+                  <div className="flex flex-col gap-3">
+                    <label className="cursor-pointer bg-accent text-white font-bold py-3 px-6 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                      <Plus size={18} /> 실제 사진 업로드하기
+                      <input type="file" className="hidden" accept="image/*" onChange={handleHeroImageUpload} disabled={isUploading} />
+                    </label>
+                    <div className="space-y-2">
+                      <label className="text-xs text-text-secondary uppercase font-bold">또는 이미지 URL 입력</label>
+                      <input 
+                        type="text"
+                        value={config.heroBgImage}
+                        onChange={(e) => onUpdateConfig({ heroBgImage: e.target.value })}
+                        className="w-full bg-black/5 border border-black/10 rounded-xl p-3 text-sm focus:border-accent outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="glass-card p-8 rounded-3xl space-y-8">
+              <h2 className="text-xl font-bold flex items-center gap-2"><Layout className="text-accent" /> 시설 안내 이미지 관리</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <h3 className="font-bold">새 시설 사진 추가</h3>
+                  <div className="space-y-4 p-6 bg-black/5 rounded-2xl">
+                    <div className="space-y-2">
+                      <label className="text-xs text-text-secondary uppercase font-bold">공간 이름 (예: 상담실 1)</label>
+                      <input 
+                        type="text"
+                        value={newFacilityImage.name}
+                        onChange={(e) => setNewFacilityImage({ ...newFacilityImage, name: e.target.value })}
+                        className="w-full bg-white border border-black/10 rounded-xl p-3 text-sm focus:border-accent outline-none"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-text-secondary uppercase font-bold">사진 선택</label>
+                      <div className="flex gap-4">
+                        {newFacilityImage.src && (
+                          <div className="w-20 h-20 rounded-lg overflow-hidden border border-black/10">
+                            <img src={newFacilityImage.src} className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <label className="flex-1 cursor-pointer border-2 border-dashed border-black/10 rounded-xl flex flex-col items-center justify-center p-4 hover:border-accent transition-colors">
+                          <Plus className="text-text-secondary" />
+                          <span className="text-xs text-text-secondary mt-1">파일 선택</span>
+                          <input type="file" className="hidden" accept="image/*" onChange={handleFacilityImageUpload} />
+                        </label>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={handleAddFacilityImage}
+                      disabled={!newFacilityImage.name || !newFacilityImage.src}
+                      className="w-full bg-accent text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:opacity-90 transition-opacity"
+                    >
+                      시설 사진 리스트에 추가
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-bold">현재 등록된 시설 사진 ({config.facilityImages.length})</h3>
+                  <div className="grid grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2">
+                    {config.facilityImages.map((img) => (
+                      <div key={img.id} className="relative group aspect-square rounded-xl overflow-hidden border border-black/10">
+                        <img src={img.src} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center">
+                          <span className="text-white text-[10px] font-bold mb-2">{img.name}</span>
+                          <button 
+                            onClick={() => handleDeleteFacilityImage(img.id)}
+                            className="bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}

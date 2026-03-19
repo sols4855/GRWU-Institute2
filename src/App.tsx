@@ -20,6 +20,7 @@ interface Notice {
 }
 
 interface SiteConfig {
+  version: number;
   primaryColor: string;
   fontFamily: string;
   heroTitle: string;
@@ -33,11 +34,12 @@ interface SiteConfig {
 }
 
 const INITIAL_CONFIG: SiteConfig = {
+  version: 2,
   primaryColor: '#22c55e',
   fontFamily: 'Inter',
   heroTitle: '우리 아이의 언어능력, 인지능력, 학습능력을 향상하는\n푸른숲 언어인지학습연구소입니다.',
   heroSubtitle: '',
-  heroBgImage: 'hero_bg.jpg',
+  heroBgImage: '/hero_bg.jpg',
   aboutText: '"숲은 인간의 심장이다"라는 말이 있습니다. 숲은 우리 인간에게 생명력과 에너지를 공급하는 가장 큰 산소 생산자이기 때문입니다. 인간에게 있어서 언어능력 역시 삶을 살아가는 가장 기본적인 필수 요건입니다. 이러한 어려움을 같이 나누고 향상시켜 숲과 같은 산소공급자의 역할을 하고자 하는 마음으로 함께 나아갈 푸른숲 언어인지학습연구소 입니다.',
   contactPhone: '031-509-8922',
   contactEmail: 'grwu8922@naver.com',
@@ -54,14 +56,14 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
         
-        // Migration: If the heroBgImage looks like a hashed asset path or an old relative path,
-        // reset it to the current absolute public path.
-        const isHashedAsset = parsed.heroBgImage?.includes('/assets/hero_bg');
-        const isRelativePath = parsed.heroBgImage === 'hero_bg.jpg';
-        const isExternalUrl = parsed.heroBgImage?.startsWith('http') || parsed.heroBgImage?.startsWith('data:');
+        // Force reset if version is old or missing
+        if (!parsed.version || parsed.version < INITIAL_CONFIG.version) {
+          return INITIAL_CONFIG;
+        }
         
-        if ((isHashedAsset || isRelativePath) && !isExternalUrl) {
-          parsed.heroBgImage = 'hero_bg.jpg';
+        // Migration: Ensure absolute paths
+        if (parsed.heroBgImage === 'hero_bg.jpg') {
+          parsed.heroBgImage = '/hero_bg.jpg';
         }
         
         return parsed;
@@ -275,7 +277,7 @@ export default function App() {
         {/* Subtle Forest Texture Overlay */}
         <div className="absolute inset-0 opacity-[0.03] mix-blend-multiply pointer-events-none">
           <img 
-            src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=2000" 
+            src="/hero_bg.jpg" 
             alt="Forest Texture" 
             className="w-full h-full object-cover"
           />
@@ -588,16 +590,16 @@ function UserPage({ config, activeTab, programs, setSelectedProgram }: {
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {[
-              { src: 'wait_room_1.jpg', name: '학부모 대기실' },
-              { src: 'wait_room_2.jpg', name: '학부모 대기실' },
-              { src: 'consult_room_1.jpg', name: '한마음(상담실)' },
-              { src: 'consult_room_2.jpg', name: '한마음(상담실)' },
-              { src: 'individual_room.jpeg', name: '둘이랑(개별지도실)' },
-              { src: 'small_group_1.jpg', name: '도란도란(소그룹실)' },
-              { src: 'small_group_2.jpg', name: '도란도란(소그룹실)' },
-              { src: 'large_group_1.jpg', name: '어울림(대그룹실)' },
-              { src: 'large_group_2.jpg', name: '어울림(대그룹실)' },
-              { src: 'large_group_3.jpg', name: '어울림(대그룹실)' },
+              { src: '/wait_room_1.jpg', name: '학부모 대기실' },
+              { src: '/wait_room_2.jpg', name: '학부모 대기실' },
+              { src: '/consult_room_1.jpg', name: '한마음(상담실)' },
+              { src: '/consult_room_2.jpg', name: '한마음(상담실)' },
+              { src: '/individual_room.jpeg', name: '둘이랑(개별지도실)' },
+              { src: '/small_group_1.jpg', name: '도란도란(소그룹실)' },
+              { src: '/small_group_2.jpg', name: '도란도란(소그룹실)' },
+              { src: '/large_group_1.jpg', name: '어울림(대그룹실)' },
+              { src: '/large_group_2.jpg', name: '어울림(대그룹실)' },
+              { src: '/large_group_3.jpg', name: '어울림(대그룹실)' },
             ].map((item, idx) => (
               <div key={idx} className="group relative aspect-square rounded-2xl md:rounded-3xl overflow-hidden shadow-md border border-black/5 bg-slate-50">
                 <img 
@@ -765,9 +767,6 @@ function AdminDashboard({ config, onUpdateConfig }: {
   const [activeAdminTab, setActiveAdminTab] = useState<'content' | 'design' | 'notices'>('content');
   const [newNotice, setNewNotice] = useState({ title: '', content: '' });
 
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [showCopySuccess, setShowCopySuccess] = useState(false);
-
   const handleAddNotice = () => {
     if (!newNotice.title || !newNotice.content) return;
     const notice: Notice = {
@@ -784,20 +783,6 @@ function AdminDashboard({ config, onUpdateConfig }: {
     onUpdateConfig({ notices: config.notices.filter(n => n.id !== id) });
   };
 
-  const handleResetConfig = () => {
-    onUpdateConfig(INITIAL_CONFIG);
-    localStorage.removeItem('site-config');
-    setShowResetConfirm(false);
-  };
-
-  const handleCopyConfig = () => {
-    const configStr = JSON.stringify(config, null, 2);
-    navigator.clipboard.writeText(configStr).then(() => {
-      setShowCopySuccess(true);
-      setTimeout(() => setShowCopySuccess(false), 2000);
-    });
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
       <div className="flex items-center justify-between border-b border-black/10 pb-8">
@@ -806,15 +791,24 @@ function AdminDashboard({ config, onUpdateConfig }: {
             <Settings className="text-accent" /> 관리자 대시보드
           </h1>
           <p className="text-text-secondary mt-2">웹사이트의 모든 콘텐츠와 디자인을 관리합니다.</p>
-          <div className="flex gap-4 mt-4">
+          <div className="flex flex-wrap gap-4 mt-4">
             <button 
-              onClick={handleCopyConfig}
+              onClick={() => {
+                const configStr = JSON.stringify(config, null, 2);
+                navigator.clipboard.writeText(configStr);
+                alert('설정 JSON이 클립보드에 복사되었습니다. 나중에 복구할 때 사용할 수 있습니다.');
+              }}
               className="text-xs bg-black/5 hover:bg-black/10 px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-colors"
             >
-              <Save size={14} /> 현재 설정 JSON 복사 (코드 적용용)
+              <Save size={14} /> 현재 설정 JSON 복사
             </button>
             <button 
-              onClick={handleResetConfig}
+              onClick={() => {
+                if (window.confirm('모든 설정을 초기 상태로 되돌리시겠습니까? 저장되지 않은 변경사항은 사라집니다.')) {
+                  localStorage.removeItem('site-config');
+                  window.location.reload();
+                }
+              }}
               className="text-xs text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-colors"
             >
               <Trash2 size={14} /> 설정 초기화

@@ -39,7 +39,7 @@ const INITIAL_CONFIG: SiteConfig = {
   fontFamily: 'Inter',
   heroTitle: '우리 아이의 언어능력, 인지능력, 학습능력을 향상하는\n푸른숲 언어인지학습연구소입니다.',
   heroSubtitle: '',
-  heroBgImage: '/hero_bg.jpg',
+  heroBgImage: 'https://picsum.photos/seed/forest/1920/1080',
   aboutText: '"숲은 인간의 심장이다"라는 말이 있습니다. 숲은 우리 인간에게 생명력과 에너지를 공급하는 가장 큰 산소 생산자이기 때문입니다. 인간에게 있어서 언어능력 역시 삶을 살아가는 가장 기본적인 필수 요건입니다. 이러한 어려움을 같이 나누고 향상시켜 숲과 같은 산소공급자의 역할을 하고자 하는 마음으로 함께 나아갈 푸른숲 언어인지학습연구소 입니다.',
   contactPhone: '031-509-8922',
   contactEmail: 'grwu8922@naver.com',
@@ -497,7 +497,8 @@ function UserPage({ config, activeTab, programs, setSelectedProgram }: {
           <img 
             src={config.heroBgImage} 
             alt="Center Interior" 
-            className="w-full h-full object-cover opacity-50"
+            referrerPolicy="no-referrer"
+            className="w-full h-full object-cover opacity-80"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-transparent" />
         </div>
@@ -605,6 +606,7 @@ function UserPage({ config, activeTab, programs, setSelectedProgram }: {
                 <img 
                   src={item.src} 
                   alt={item.name} 
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4 md:p-6">

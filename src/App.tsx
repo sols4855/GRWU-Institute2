@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Menu, X, Settings, Plus, Trash2, Edit2, 
   ChevronRight, BookOpen, Users, Award, Phone, MapPin, Mail,
-  Save, Palette, Type, Image as ImageIcon, Layout, Leaf, Bell, Calendar
+  Save, Palette, Type, Image as ImageIcon, Layout, Leaf, Bell, Calendar, Lock
 } from 'lucide-react';
 
 // --- Types ---
@@ -38,10 +38,11 @@ interface SiteConfig {
   contactAddress: string;
   notices: Notice[];
   facilityImages: FacilityImage[];
+  adminPassword?: string;
 }
 
 const INITIAL_CONFIG: SiteConfig = {
-  version: 4,
+  version: 5,
   primaryColor: '#22c55e',
   fontFamily: 'Inter',
   heroTitle: '우리 아이의 언어능력, 인지능력, 학습능력을 향상하는\n푸른숲 언어인지학습연구소입니다.',
@@ -65,7 +66,8 @@ const INITIAL_CONFIG: SiteConfig = {
     { id: '8', src: 'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&q=80&w=800', name: '어울림(대그룹실)' },
     { id: '9', src: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80&w=800', name: '어울림(대그룹실)' },
     { id: '10', src: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&q=80&w=800', name: '어울림(대그룹실)' },
-  ]
+  ],
+  adminPassword: 'admin'
 };
 
 export default function App() {
@@ -100,6 +102,27 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'about' | 'services' | 'notices'>('home');
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+
+  const handleAdminToggle = () => {
+    if (isAdmin) {
+      setIsAdmin(false);
+    } else {
+      setShowPasswordPrompt(true);
+    }
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === (config.adminPassword || 'admin')) {
+      setIsAdmin(true);
+      setShowPasswordPrompt(false);
+      setPasswordInput('');
+    } else {
+      alert('비밀번호가 틀렸습니다.');
+    }
+  };
 
   // Apply config changes to CSS variables
   useEffect(() => {
@@ -399,6 +422,67 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Password Prompt Modal */}
+      <AnimatePresence>
+        {showPasswordPrompt && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setShowPasswordPrompt(false);
+                setPasswordInput('');
+              }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl space-y-6"
+            >
+              <div className="text-center space-y-2">
+                <div className="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Lock className="text-accent" size={24} />
+                </div>
+                <h2 className="text-2xl font-bold">관리자 인증</h2>
+                <p className="text-text-secondary text-sm">설정 변경을 위해 비밀번호를 입력해주세요.</p>
+              </div>
+
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <input
+                  type="password"
+                  autoFocus
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="비밀번호 입력"
+                  className="w-full bg-black/5 border border-black/10 rounded-xl p-4 text-center text-lg focus:border-accent outline-none"
+                />
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPasswordPrompt(false);
+                      setPasswordInput('');
+                    }}
+                    className="flex-1 py-4 rounded-xl font-bold bg-black/5 hover:bg-black/10 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-4 rounded-xl font-bold bg-accent text-white hover:opacity-90 transition-opacity"
+                  >
+                    확인
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 glass-card border-b border-black/5 px-6 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -421,7 +505,7 @@ export default function App() {
               </button>
             ))}
             <button 
-              onClick={() => setIsAdmin(!isAdmin)}
+              onClick={handleAdminToggle}
               className="p-2 hover:bg-black/5 rounded-full transition-colors"
               title="관리자 모드"
             >
@@ -431,7 +515,7 @@ export default function App() {
 
           {/* Mobile Menu Toggle */}
           <div className="md:hidden flex items-center gap-4">
-            <button onClick={() => setIsAdmin(!isAdmin)} className="p-2">
+            <button onClick={handleAdminToggle} className="p-2">
               <Settings className={`w-5 h-5 ${isAdmin ? 'text-accent' : 'text-text-secondary'}`} />
             </button>
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2">
@@ -1173,6 +1257,22 @@ function AdminDashboard({ config, onUpdateConfig, onFileUpload }: {
                     <option value="Georgia">Georgia (Classic Serif)</option>
                     <option value="Courier New">Courier (Monospace)</option>
                   </select>
+                </div>
+
+                <div className="space-y-4 pt-8 border-t border-black/5">
+                  <label className="text-sm font-bold flex items-center gap-2">
+                    <Lock size={16} /> 관리자 비밀번호 변경
+                  </label>
+                  <div className="flex gap-3">
+                    <input 
+                      type="text"
+                      value={config.adminPassword || ''}
+                      onChange={(e) => onUpdateConfig({ adminPassword: e.target.value })}
+                      placeholder="새 비밀번호 입력"
+                      className="flex-1 bg-black/5 border border-black/10 rounded-xl p-4 text-sm focus:border-accent outline-none"
+                    />
+                  </div>
+                  <p className="text-xs text-text-secondary">관리자 모드 진입 시 사용할 비밀번호를 설정합니다. (기본값: admin)</p>
                 </div>
               </div>
             </div>

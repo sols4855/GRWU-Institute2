@@ -666,7 +666,7 @@ function UserPage({ config, activeTab, programs, setSelectedProgram }: {
             <div className="space-y-4">
               <h2 className="text-4xl font-bold text-slate-900">전문성과 따뜻한 마음으로<br />아이들과 함께합니다.</h2>
               <div className="flex flex-col items-center">
-                <p className="text-accent font-bold text-2xl">원장 공영아</p>
+                <p className="text-accent font-bold text-2xl">대표 치료사 공영아</p>
                 <p className="text-sm text-text-secondary">언어재활사 / 특수교사</p>
               </div>
             </div>
